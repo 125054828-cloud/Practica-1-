@@ -21,7 +21,12 @@ inventario = [
     Dispositivo(nombre="SW1", tipo="switch", ip="10.0.0.10", activo=False),
     Dispositivo(nombre="FW1", tipo="firewall", ip="10.0.0.254"),
 ]
-
+def buscar(nombre: str) -> Dispositivo | None:
+    """Devuelve el equipo con ese nombre, o None si no existe."""
+    for equipo in inventario:
+        if equipo.nombre.upper() == nombre.upper():
+            return equipo
+    return None
 
 @app.get("/")
 async def estado():
@@ -37,8 +42,8 @@ async def listar(activo: bool | None = None):
 @app.get("/dispositivos/{nombre}")
 async def obtener(nombre: str):
     """Busca un equipo por su nombre."""
-    for equipo in inventario:
-        if equipo.nombre.upper() == nombre.upper():
-            return equipo
-    raise HTTPException(status_code=404,
-                        detail=f"No existe el equipo {nombre}")
+    equipo = buscar(nombre)
+    if equipo is None:
+        raise HTTPException(status_code=404,
+                            detail=f"No existe el equipo {nombre}")
+    return equipo
