@@ -3,7 +3,7 @@
 Alumno: Fatima Anel Martinez Montero
 Matrícula: 125054828
 """
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Response
 from pydantic import BaseModel
 
 app = FastAPI(title="Inventario de red")
@@ -54,6 +54,8 @@ async def obtener(nombre: str):
         raise HTTPException(status_code=404,
                             detail=f"No existe el equipo {nombre}")
     return equipo
+
+
 @app.post("/dispositivos", status_code=201)
 async def crear(nuevo: Dispositivo):
     """Da de alta un equipo. Rechaza nombres repetidos."""
@@ -62,6 +64,7 @@ async def crear(nuevo: Dispositivo):
                             detail=f"Ya existe el equipo {nuevo.nombre}")
     inventario.append(nuevo)
     return nuevo
+
 
 @app.put("/dispositivos/{nombre}")
 async def reemplazar(nombre: str, datos: Dispositivo):
@@ -84,3 +87,14 @@ async def modificar(nombre: str, cambios: DispositivoParcial):
     for campo, valor in cambios.model_dump(exclude_unset=True).items():
         setattr(equipo, campo, valor)
     return equipo
+
+
+@app.delete("/dispositivos/{nombre}", status_code=204)
+async def eliminar(nombre: str):
+    """Da de baja un equipo del inventario."""
+    equipo = buscar(nombre)
+    if equipo is None:
+        raise HTTPException(status_code=404,
+                            detail=f"No existe el equipo {nombre}")
+    inventario.remove(equipo)
+    return Response(status_code=204)
